@@ -26,6 +26,7 @@ m = 500
 l = 50
 lemmatize = False
 lowercase = True
+trainingDataPortion = 0.85
 
 stoplist = set(stopwords.words('english'))
 
@@ -137,13 +138,14 @@ if __name__ == '__main__':
 	filename = sys.argv[1]
 	entriesToProcess = int(sys.argv[2])
 	
+	noOfTrainingEntries = int(entriesToProcess * trainingDataPortion)
+	
 	X, Y = read_data(filename, entriesToProcess)
 	
-	test_X = X[:100,:]
-	test_Y = Y[:100]
-
-	train_X = X[100:, :]
-	train_Y = Y[100:]
+	train_X = X[:noOfTrainingEntries, :]
+	train_Y = Y[:noOfTrainingEntries]
+	test_X = X[noOfTrainingEntries:,:]
+	test_Y = Y[noOfTrainingEntries:]
 	
 	#Naive Bayes
 	print "=============================================================================="
@@ -159,7 +161,6 @@ if __name__ == '__main__':
 	print "\nTesting Data Analysis:"
 	predict = nb.predict(test_X)	
 	accuracy(test_Y, predict)
-	print "=============================================================================="
 	
 	#SVM
 	print "=============================================================================="
