@@ -4,7 +4,7 @@ import numpy as np
 def parseCSV(filename, entriesToProcess):
 	
 	x = []
-	y = np.zeros(shape=[entriesToProcess, 1])
+	y = np.zeros(entriesToProcess)
 	
 	with open(filename, 'rU') as inputs:
 		reader = csv.DictReader(inputs)
@@ -15,7 +15,7 @@ def parseCSV(filename, entriesToProcess):
 				if (key != 'Id') :
 					try:
 						if (key == 'Prediction') :
-							y[i,0] = int(value)
+							y[i] = int(value)
 						elif (key == 'Interview'): 
 							x.append(value)
 					except:

@@ -43,17 +43,15 @@ def read_data(filename, entriesToProcess):
 	#for i in range(entriesToProcess) :
 	#	print interviews[i]
 	
-	featurelist = extract_features(interviews, Y, m, l, lemmatize, lowercase)
+	X = extract_features(interviews, Y, m, l, lemmatize, lowercase, entriesToProcess)
     		
-	# convert indices to numpy array
-	X = np.array(featurelist)
 	return X, Y
     
 
 ################################################################################
 # feature extraction
 
-def extract_features(strings, classes, m, l, lemmatize, lowercase):
+def extract_features(strings, classes, m, l, lemmatize, lowercase, entriesToProcess):
 	'''
 	Extract features from text file f into a feature vector.
     
@@ -62,34 +60,33 @@ def extract_features(strings, classes, m, l, lemmatize, lowercase):
 	lemmatize: (boolean) whether or not to lemmatize
 	lowercase: (boolean) whether or not to lowercase everything
 	'''
-	
-	featurelist = get_bagofwords(strings, classes, m, l, lemmatize, lowercase)
 		
-	featureRow = []
-	bigram=[]
+	featurelist = get_bagofwords(strings, classes, m, l, lemmatize, lowercase)
+	noOfFeatures = len(featurelist) # Total no. of features
+	
+	featureMatrix = np.zeros(shape=[entriesToProcess, noOfFeatures])
+	i = 0
 	for str in strings : 
+		featureRow = {}
 		bigram=[]
 		tokens = get_tokens(str)
 		for pair in nltk.bigrams(tokens) : bigram.append(pair)
 		tokens.extend(bigram)
 		
-	for inst in tokens : 
-		if (inst in featurelist): 
-			print inst; 
-			
-	'''	
-	for pair in global_bigrams : 
-		if (pair in bigram):
-			#print int(counter_bi[pair]); 
-			indices[pair] = counter_bi[pair]
-		else : indices[pair] = 0
-    
-	list=[]
-	for value, key in indices.items() : 
-		list.append(key)
+		dict_token = Counter(tokens)
+		for inst in featurelist : 
+			if (inst in tokens): 
+				featureRow[inst] = dict_token[inst]
+			else :
+				featureRow[inst] = 0
+		j=0
+		for key, value in featureRow.items() :
+			featureMatrix[i,j] = value
+			j+=1
+		i+=1
 	
-	return list
-	'''
+	return featureMatrix
+
 
 	
 def ispunct(some_string):
@@ -140,22 +137,16 @@ if __name__ == '__main__':
 	filename = sys.argv[1]
 	entriesToProcess = int(sys.argv[2])
 	
-	read_data(filename, entriesToProcess)
+	X, Y = read_data(filename, entriesToProcess)
 	
-	print "done"
-	'''
-	i,j = train_X.shape
-	sum=0
-	for i1 in range(i):
-		for i2 in range(j):
-			sum+=train_X[i1,i2]
-	print sum
-	
-	test_X, test_Y = read_tac('2011', True)
-	
+	test_X = X[:100,:]
+	test_Y = Y[:100]
+
+	train_X = X[100:, :]
+	train_Y = Y[100:]
 	
 	#Naive Bayes
-	print "====================================================================================="
+	print "=============================================================================="
 	print "Naive Bayes Appproach"
 	
 	nb = naive_bayes.GaussianNB()
@@ -168,10 +159,10 @@ if __name__ == '__main__':
 	print "\nTesting Data Analysis:"
 	predict = nb.predict(test_X)	
 	accuracy(test_Y, predict)
-	print "====================================================================================="
+	print "=============================================================================="
 	
 	#SVM
-	print "====================================================================================="
+	print "=============================================================================="
 	print "SVM Appproach"
 	
 	clf = svm.SVC()
@@ -184,21 +175,4 @@ if __name__ == '__main__':
 	print "\nTesting Data Analysis:"
 	predict = clf.predict(test_X)	
 	accuracy(test_Y, predict)
-	print "====================================================================================="
-
-	#Linear Model
-	print "====================================================================================="
-	print "Linear Model Appproach"
-	
-	clf = linear_model.SGDClassifier()
-	clf.fit(train_X, train_Y)
-	
-	print "Training Data Analysis:"
-	predict = clf.predict(train_X)
-	accuracy(train_Y, predict)
-	
-	print "\nTesting Data Analysis:"
-	predict = clf.predict(test_X)	
-	accuracy(test_Y, predict)
-	print "====================================================================================="
-'''
+	print "=============================================================================="
