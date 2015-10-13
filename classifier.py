@@ -20,6 +20,8 @@ from collections import Counter
 from dataParser import parseCSV
 from featureSelector import get_bagofwords
 
+import svmClassifier as SVM
+
 ######################################
 # model parameters
 m = 500
@@ -165,15 +167,14 @@ if __name__ == '__main__':
 	#SVM
 	print "=============================================================================="
 	print "SVM Appproach"
+	svm_classifier = SVM.svm()
+	svm_classifier.train(train_X, train_Y)
 	
-	clf = svm.SVC()
-	clf.fit(train_X, train_Y)
-	
-	print "Training Data Analysis:"
-	predict = clf.predict(train_X)
+	print "Training Data Analysis:"	
+	predict = svm_classifier.predict(train_X)
 	accuracy(train_Y, predict)
 	
 	print "\nTesting Data Analysis:"
-	predict = clf.predict(test_X)	
+	predict = svm_classifier.predict(test_X)	
 	accuracy(test_Y, predict)
 	print "=============================================================================="
