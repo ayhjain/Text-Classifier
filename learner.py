@@ -14,7 +14,8 @@ class Learner():#metaclass=ABCMeta):
     
     def __init__(self, train_X, train_Y, c_ratio):
         
-        self.x = np.matrix(train_X)
+        self.x = np.ones([train_X.shape[0], train_X.shape[1]+1])
+        self.x[:, 1:] = np.matrix(train_X)
         self.y = np.matrix(train_Y)
         
         # orient y matrix correctly
@@ -94,21 +95,21 @@ class Learner():#metaclass=ABCMeta):
                 self.train_X[l_index:, :] = self.x[upper:self.n, :]
                 self.train_Y[l_index:, :] = self.y[upper:self.n, :]
             
-    def do_kfold_cross_validation(self):
-        iter = list(range(self.c_indices.shape[0]))
-        cross_error = 0
-        
-        for i in iter:
-            self.set_data(i)
-            weights = self.learn();
-            if self.cross_len > 0:
-                cross_error += self.calc_error(weights, self.c_valid_X, self.c_valid_Y)
-        
-        cross_error /= iter[-1]
-        return cross_error
+#    def do_kfold_cross_validation(self):
+#        iter = list(range(self.c_indices.shape[0]))
+#        cross_error = 0
+#        
+#        for i in iter:
+#            self.set_data(i)
+#            weights = self.learn(self.train_X, self.train_Y, c_valid = True);
+#            if self.cross_len > 0:
+#                cross_error += self.calc_error(weights, self.c_valid_X, self.c_valid_Y)
+#        
+#        cross_error /= iter[-1]
+#        return cross_error
 
 #    @abstractmethod
-    def learn(self):
+    def learn(self, x, y, c_valid = False):
         """To be defined in child classes."""
     
 #    @abstractmethod
@@ -120,13 +121,12 @@ class Learner():#metaclass=ABCMeta):
         """To be defined in child classes."""
     
     def tester(self):
-        self.do_kfold_cross_validation()
+#        self.do_kfold_cross_validation()
+        pass
     
-        
 if __name__=='__main__':
     x = np.matrix([[1, 2], [3, 4], [1, 2], [3, 4]])
-    n = np.matrix([1, 2, 1, 2])
+    n = np.matrix([1, 0, 1, 0])
    
     lr = Learner(x, n, 0.25)
-    lr.tester();
     
