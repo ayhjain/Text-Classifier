@@ -102,10 +102,9 @@ class Learner():#metaclass=ABCMeta):
             self.set_data(i)
             weights = self.learn();
             if self.cross_len > 0:
-                pass
-#                cross_error += self.calc_error(weights, self.c_valid_X, self.c_valid_Y)
+                cross_error += self.calc_error(weights, self.c_valid_X, self.c_valid_Y)
         
-#        cross_error /= iter[-1]
+        cross_error /= iter[-1]
         return cross_error
 
 #    @abstractmethod
