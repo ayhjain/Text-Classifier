@@ -19,7 +19,7 @@ class Learner():#metaclass=ABCMeta):
         self.y = np.matrix(train_Y)
         
         # orient y matrix correctly
-        if self.y.shape[0] != 1 or self.y.shape[1] > self.y.shape[0]:
+        if self.y.shape[1] != 1 or self.y.shape[1] > self.y.shape[0]:
             self.y = self.y.T
             
         self.n = self.x.shape[0]
@@ -126,7 +126,7 @@ class Learner():#metaclass=ABCMeta):
     
 if __name__=='__main__':
     x = np.matrix([[1, 2], [3, 4], [1, 2], [3, 4]])
-    n = np.matrix([1, 0, 1, 0])
+    n = np.matrix([1, 0, 1, 0]).T
    
     lr = Learner(x, n, 0.25)
     

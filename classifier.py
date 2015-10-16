@@ -13,6 +13,7 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 from sklearn import svm, linear_model, naive_bayes 
 import nltk.data
+from gaussian import Gaussian
 from collections import Counter
 
 ######################################
@@ -151,16 +152,18 @@ if __name__ == '__main__':
 	print "=============================================================================="
 	print "Naive Bayes Appproach"
 	
-	nb = naive_bayes.GaussianNB()
-	nb.fit(train_X, train_Y)
-	
-	print "Training Data Analysis:"
-	predict = nb.predict(train_X)
-	accuracy(train_Y, predict)
-	
-	print "\nTesting Data Analysis:"
-	predict = nb.predict(test_X)	
-	accuracy(test_Y, predict)
+	gnb = Gaussian(train_X, train_Y, 0.2)
+    gnb.learn(train_X, train_Y)
+    
+    print ("Training Data Analysis:")
+    predict = gnb.predict(train_X)
+    accuracy(train_Y, predict)
+    	
+    print ("\nTesting Data Analysis:")
+    predict = gnb.predict(test_X)	
+    print(predict)
+    print(test_Y)
+    accuracy(test_Y, predict)
 	
 	#SVM
 	print "=============================================================================="
