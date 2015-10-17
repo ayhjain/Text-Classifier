@@ -1,8 +1,0 @@
-length
-bi/uni for each category - DONE
-least freq words - DONE
-largest disjoint set of words from each category
-how often switch happened
-
-
- It's a road song really more than anything. But the iris, of course, the iris image is not the flower. It's a... __EOS__ It's like the camera, the eye. __EOS__ The mechanical thing, yeah. Like the thing that determines how much light gets into your eye - or is the shutter of a camera. But it's also, that same function applies to certain kinds of doorways, especially sci-fi doorways on spaceships and the books that I used to read when I was a teenager. __EOS__ Or our perspective - whether it's pinpoint or the larger picture, too, right? 

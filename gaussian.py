@@ -21,9 +21,8 @@ class Gaussian(Learner):
         log_likelihood = []
         for class_i in range(np.size(self.classes)):
             p_yi = np.log(self.class_prob[class_i])
-#            print(np.sum(np.log(2 * np.pi * self.sigma[class_i])))
-            g_yi = -0.5 * np.log(np.sum((np.array((x-self.mu[class_i])) ** 2) / 
-                                         (self.sigma[class_i]), 1)) #cofirm this gaussian definition
+            g_yi = -0.5 * np.sum((np.array((x-self.mu[class_i])) ** 2) / 
+                                         (self.sigma[class_i]), 1) #cofirm this gaussian definition
             g_yi -= 0.5 * np.sum(np.log(2 * np.pi * self.sigma[class_i]))
             
             log_likelihood.append(p_yi + g_yi)
@@ -46,7 +45,6 @@ class Gaussian(Learner):
         self.class_prob = np.zeros(self.n_class)
         
         for class_i in self.classes:
-                        
             x_feat = self.get_subset(x, y, class_i)
             self.class_prob[class_i] = x_feat.shape[0]/n
             
@@ -68,14 +66,22 @@ class Gaussian(Learner):
     def get_subset(self, x, y, class_i):
         res = []
         x = np.array(x)
-        for i in range(len(y)):
-            if y[i] == class_i:
+        y = np.array(y)
+        
+        for i in range(y.shape[0]):
+            if y[i, 0] == class_i:
                 res.append(x[i, :])
         return np.matrix(res)
         
+    def tester(self):
+        x = np.matrix([[1, 2], [3, 4], [1, 2], [3, 4]])
+        n = np.matrix([1, 0, 1, 0]).T
+        
+        self.learn(x, n)
+        print(self.predict(x))
 if __name__=='__main__':
     x = np.matrix([[1, 2], [3, 4], [10, 20], [30, 40]])
-    n = np.matrix([1, 0, 1, 0])
+    n = np.array([1, 0, 1, 0]).T
    
     lr = Gaussian(x, n, 0.25)
     lr.learn(x, n)
