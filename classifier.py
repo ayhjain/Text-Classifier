@@ -14,11 +14,12 @@ from nltk.corpus import stopwords
 from sklearn import svm, linear_model, naive_bayes 
 import nltk.data
 from collections import Counter
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 ######################################
 # importing from different modoules
 from dataParser import parseCSV
-from featureSelector import get_bagofwords
+from featureSelector import extract_featureMatrix
 
 import svmClassifier as SVM
 
@@ -30,99 +31,40 @@ lemmatize = False
 lowercase = True
 trainingDataPortion = 0.85
 
-stoplist = set(stopwords.words('english'))
+stoplist = stopwords.words('english')
+stoplist.append('__eos__')
 
+no_of_features=1500
+replace = False
 
 ################################################################################
-# reading data set
+# reading data set and feature extraction
 def read_data(filename, entriesToProcess):
-	'''
-	Read data set and return feature matrix X and class Y.
-	X - (entriesToProcess x nfeats)
-	Y - (entriesToProcess)
-	'''
-	interviews, Y = parseCSV(filename, entriesToProcess)
+    '''
+    Read data set and return feature matrix X and class Y.
+    X - (entriesToProcess x nfeats)
+    Y - (entriesToProcess)
+    '''
+    directory =os.getcwd()
+    os.chdir("Data")
 
-	#for i in range(entriesToProcess) :
-	#	print interviews[i]
-	
-	X = extract_features(interviews, Y, m, l, lemmatize, lowercase, entriesToProcess)
-    		
-	return X, Y
+    if (not replace) and os.path.isfile("featureMatrix.npy") and os.path.isfile("prediction.npy") : 
+        X = np.load("featureMatrix.npy")
+        Y = np.load("prediction.npy")
+
+    else:
+        os.chdir("..")
+        interviews, Y = parseCSV(filename, entriesToProcess)
+        X = extract_featureMatrix(interviews, Y, no_of_features, replace, lemmatize, lowercase, entriesToProcess)
+        os.chdir("Data")
+        np.save("featureMatrix",X)
+        np.save("prediction", Y)
     
-
-################################################################################
-# feature extraction
-
-def extract_features(strings, classes, m, l, lemmatize, lowercase, entriesToProcess):
-	'''
-	Extract features from text file f into a feature vector.
-    
-	m: no. of most common ngrams to pick from each category
-	l: no. of least common ngrams to pick from each category
-	lemmatize: (boolean) whether or not to lemmatize
-	lowercase: (boolean) whether or not to lowercase everything
-	'''
-		
-	featurelist = get_bagofwords(strings, classes, m, l, lemmatize, lowercase)
-	noOfFeatures = len(featurelist) # Total no. of features
-	
-	featureMatrix = np.zeros(shape=[entriesToProcess, noOfFeatures])
-	i = 0
-	for str in strings : 
-		featureRow = {}
-		bigram=[]
-		tokens = get_tokens(str)
-		for pair in nltk.bigrams(tokens) : bigram.append(pair)
-		tokens.extend(bigram)
-		
-		dict_token = Counter(tokens)
-		for inst in featurelist : 
-			if (inst in tokens): 
-				featureRow[inst] = dict_token[inst]
-			else :
-				featureRow[inst] = 0
-		j=0
-		for key, value in featureRow.items() :
-			featureMatrix[i,j] = value
-			j+=1
-		i+=1
-	
-	return featureMatrix
-
-
-	
-def ispunct(some_string):
-    return not any(char.isalnum() for char in some_string)
-
-def get_tokens(s):
-	'''
-	Tokenize into words in sentences.
-    
-	Returns list of strs
-	'''
-	retval = []
-	#sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
-	#sents = sent_detector.tokenize(s.strip())
-	sents = sent_tokenize(s)
-	for sent in sents:
-		tokens = word_tokenize(sent)
-		
-		for word in tokens:
-			word = word.lower()
-			if (ispunct(word)): 
-				continue
-			if (word in stoplist): 
-				continue
-			elif (ispunct(word[-1])): 
-				word = word[:-1] # removing puntuation from last place
-			retval.append(word)
-	
-	return retval
+    os.chdir("..")
+    return X, Y
 
 
 ################################################################################
-
 # evaluation code
 def accuracy(gold, predict):
     assert len(gold) == len(predict)
@@ -135,46 +77,48 @@ def accuracy(gold, predict):
 ################################################################################
 
 if __name__ == '__main__':
-	# main driver code
-	
-	filename = sys.argv[1]
-	entriesToProcess = int(sys.argv[2])
-	
-	noOfTrainingEntries = int(entriesToProcess * trainingDataPortion)
-	
-	X, Y = read_data(filename, entriesToProcess)
-	
-	train_X = X[:noOfTrainingEntries, :]
-	train_Y = Y[:noOfTrainingEntries]
-	test_X = X[noOfTrainingEntries:,:]
-	test_Y = Y[noOfTrainingEntries:]
-	
-	#Naive Bayes
-	print "=============================================================================="
-	print "Naive Bayes Appproach"
-	
-	nb = naive_bayes.GaussianNB()
-	nb.fit(train_X, train_Y)
-	
-	print "Training Data Analysis:"
-	predict = nb.predict(train_X)
-	accuracy(train_Y, predict)
-	
-	print "\nTesting Data Analysis:"
-	predict = nb.predict(test_X)	
-	accuracy(test_Y, predict)
-	
-	#SVM
-	print "=============================================================================="
-	print "SVM Appproach"
-	svm_classifier = SVM.svm()
-	svm_classifier.train(train_X, train_Y)
-	
-	print "Training Data Analysis:"	
-	predict = svm_classifier.predict(train_X)
-	accuracy(train_Y, predict)
-	
-	print "\nTesting Data Analysis:"
-	predict = svm_classifier.predict(test_X)	
-	accuracy(test_Y, predict)
-	print "=============================================================================="
+    # main driver code
+    
+    filename = sys.argv[1]
+    entriesToProcess = int(sys.argv[2])
+    
+    noOfTrainingEntries = int(entriesToProcess * trainingDataPortion)
+    
+    X, Y = read_data(filename, entriesToProcess)
+    
+    train_X = X[:noOfTrainingEntries, :]
+    train_Y = Y[:noOfTrainingEntries]
+    test_X = X[noOfTrainingEntries:,:]
+    test_Y = Y[noOfTrainingEntries:]
+    '''
+    #Naive Bayes
+    print "=============================================================================="
+    print "Naive Bayes Appproach"
+    
+    nb = naive_bayes.GaussianNB()
+    nb.fit(train_X, train_Y)
+    
+    print "Training Data Analysis:"
+    predict = nb.predict(train_X)
+    accuracy(train_Y, predict)
+    
+    print "\nTesting Data Analysis:"
+    predict = nb.predict(test_X)    
+    accuracy(test_Y, predict)
+    '''
+    #SVM
+    print "=============================================================================="
+    print "SVM Appproach"
+    svm_classifier = SVM.svm()
+    svm_classifier.train(train_X, train_Y)
+    
+    print "Training Data Analysis:" 
+    predict = svm_classifier.predict(train_X)
+    accuracy(train_Y, predict)
+    
+    print "\nTesting Data Analysis:"
+    predict = svm_classifier.predict(test_X)    
+    accuracy(test_Y, predict)
+    print "=============================================================================="
+    
+    print "\nDone!!"

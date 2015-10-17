@@ -2,45 +2,34 @@ import csv, sys
 import numpy as np
 
 def parseCSV(filename, entriesToProcess):
-	
-	x = []
-	y = np.zeros(entriesToProcess)
-	
-	with open(filename, 'rU') as inputs:
-		reader = csv.DictReader(inputs)
-		i = 0
-		for row in reader :
-			for key, value in row.items() :
-#				print i, key, value
-				if (key != 'Id') :
-					try:
-						if (key == 'Prediction') :
-							y[i] = int(value)
-						elif (key == 'Interview'): 
-							x.append(value)
-					except:
-						print "ERROR: ", i, key, value
-						# control shouldn't be in this portion of Code
+    
+    x = []
+    y = []#np.zeros(entriesToProcess)
+    
+    with open(filename, 'rU') as inputs:
+        reader = csv.DictReader(inputs)
+        i = 0
+        for row in reader :
+            try:
+                y.append(row['Prediction'])
+                x.append(row['Interview'])
+            except:
+                print "Error parsing ", i,"th entry"
+                # control shouldn't be in this portion of Code
+            i +=  1
+            if (i >= entriesToProcess and entriesToProcess >= 0):
+                break
 
-			i +=  1
-			if (i >= entriesToProcess): 
-				break
-	
-	print ("Done parsing!")
-	return x,y
+    print ("Done parsing!")
+    y = np.array(y)
+    return x,y
 
 
 if __name__ == "__main__" : 
-	
-	filename = sys.argv[1]
-	entriesToProcess = int(sys.argv[2])
-	
-	x, y = parseCSV(filename, entriesToProcess)
-	'''
-	for i in range(entriesToProcess):
-		print y[i]
-		print
-		
-	print x
-	'''
-	print "Bye"
+    
+    filename = sys.argv[1]
+    entriesToProcess = int(sys.argv[2])
+    
+    x, y = parseCSV(filename, entriesToProcess)
+    print len(x), len(y)    
+    print "Bye"
