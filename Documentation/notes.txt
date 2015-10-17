@@ -1,0 +1,9 @@
+Features we can use - 
+
+1. Length
+2. bi/uni for each category - DONE
+3. least freq words - DONE
+4. Modified - TF-IDF : largest disjoint set of words from each category
+5. how often switch happened
+
+maybe - hardcoding certain words.
