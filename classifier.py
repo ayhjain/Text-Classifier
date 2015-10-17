@@ -13,6 +13,7 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 from sklearn import svm, linear_model, naive_bayes 
 import nltk.data
+from gaussian import Gaussian
 from collections import Counter
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -55,6 +56,7 @@ def read_data(filename, entriesToProcess):
     else:
         os.chdir("..")
         interviews, Y = parseCSV(filename, entriesToProcess)
+        entriesToProcess = Y.shape[0]
         X = extract_featureMatrix(interviews, Y, no_of_features, replace, lemmatize, lowercase, entriesToProcess)
         os.chdir("Data")
         np.save("featureMatrix",X)
@@ -73,14 +75,14 @@ def accuracy(gold, predict):
         if int(gold[i]) == int(predict[i]):
             corr += 1
     acc = float(corr) / len(gold)
-    print 'Accuracy %d / %d = %.4f' % (corr, len(gold), acc)
+    print ("Accuracy %d / %d = %.4f" % (corr, len(gold), acc))
 ################################################################################
 
 if __name__ == '__main__':
-    # main driver code
-    
-    filename = sys.argv[1]
-    entriesToProcess = int(sys.argv[2])
+	# main driver code
+	
+    filename = sys.argv
+    entriesToProcess = int(sys.argv[2]);
     
     noOfTrainingEntries = int(entriesToProcess * trainingDataPortion)
     
@@ -90,35 +92,36 @@ if __name__ == '__main__':
     train_Y = Y[:noOfTrainingEntries]
     test_X = X[noOfTrainingEntries:,:]
     test_Y = Y[noOfTrainingEntries:]
-    '''
+         
     #Naive Bayes
-    print "=============================================================================="
-    print "Naive Bayes Appproach"
+    print ("==============================================================================")
+    print ("Naive Bayes Appproach")
     
-    nb = naive_bayes.GaussianNB()
-    nb.fit(train_X, train_Y)
+    gnb = Gaussian(train_X, train_Y, 0.2)
+    gnb.learn(train_X, train_Y)
     
-    print "Training Data Analysis:"
-    predict = nb.predict(train_X)
+    print ("Training Data Analysis:")
+    predict = gnb.predict(train_X)
     accuracy(train_Y, predict)
-    
-    print "\nTesting Data Analysis:"
-    predict = nb.predict(test_X)    
+    	
+    print ("\nTesting Data Analysis:")
+    predict = gnb.predict(test_X)	
+    print(predict)
+    print(test_Y)
     accuracy(test_Y, predict)
-    '''
+    
     #SVM
-    print "=============================================================================="
-    print "SVM Appproach"
+    print ("==============================================================================")
+    print ("SVM Appproach")
+    
     svm_classifier = SVM.svm()
     svm_classifier.train(train_X, train_Y)
     
-    print "Training Data Analysis:" 
+    print ("Training Data Analysis:")
     predict = svm_classifier.predict(train_X)
     accuracy(train_Y, predict)
     
-    print "\nTesting Data Analysis:"
+    print ("\nTesting Data Analysis:")
     predict = svm_classifier.predict(test_X)    
     accuracy(test_Y, predict)
-    print "=============================================================================="
-    
-    print "\nDone!!"
+    print ("==============================================================================")

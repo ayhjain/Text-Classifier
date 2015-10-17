@@ -67,7 +67,7 @@ def extract_featureMatrix(strings, classes, no_of_features,replace, lemmatize, l
     else :
         featurelist = get_bagofwords(strings, classes, m, l, lemmatize, lowercase)
 
-    print featurelist
+    print (featurelist)
     
     noOfFeatures = len(featurelist) # Total no. of features
     
@@ -84,7 +84,7 @@ def extract_featureMatrix(strings, classes, no_of_features,replace, lemmatize, l
             tokens.extend(pair)
 
         j=0
-        print "Processing ",(i+1),"th entry."
+        print ("Processing ",(i+1),"th entry.")
         dict_token = Counter(tokens)
         for inst in featurelist : 
             if (inst in tokens): 
@@ -105,7 +105,7 @@ def get_tfidf_features(strings, classes, no_of_features, replace, lemmatize, low
 
     if (not replace) and os.path.isfile("features.npy") : 
         features = np.load("features.npy")
-        print "List of features picked from memory."
+        print ("List of features picked from memory.")
         
     else : 
         i=0
@@ -116,10 +116,10 @@ def get_tfidf_features(strings, classes, no_of_features, replace, lemmatize, low
         
         vectorizer.fit_transform(bow)
         featureList = list(vectorizer.get_feature_names())
-        print "New list of features created."
+        print ("New list of features created.")
         features = np.array(featureList)
         np.save("features", features)
-        print "New list of features created."
+        print ("New list of features created.")
     
     os.chdir("..")
     return features

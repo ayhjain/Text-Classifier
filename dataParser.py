@@ -4,9 +4,9 @@ import numpy as np
 def parseCSV(filename, entriesToProcess):
     
     x = []
-    y = []#np.zeros(entriesToProcess)
+    y = []
     
-    with open(filename, 'rU') as inputs:
+    with open(filename, 'rU', encoding="utf-8") as inputs:
         reader = csv.DictReader(inputs)
         i = 0
         for row in reader :
@@ -14,7 +14,7 @@ def parseCSV(filename, entriesToProcess):
                 y.append(row['Prediction'])
                 x.append(row['Interview'])
             except:
-                print "Error parsing ", i,"th entry"
+                print ("Error parsing ", i,"th entry")
                 # control shouldn't be in this portion of Code
             i +=  1
             if (i >= entriesToProcess and entriesToProcess >= 0):

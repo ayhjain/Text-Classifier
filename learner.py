@@ -1,132 +1,132 @@
-# -*- Coding: Utf-8 -*-
+# -*- coding: utf-8 -*-
 """
-created On Wed Oct 13 17:25:59 2015
+Created on Wed Oct 13 17:25:59 2015
 
-@author: Neeth
+@author: neeth
 """
 
-import Numpy As Np
-#import Abc As Abcmeta
+import numpy as np
+#import abc as ABCMeta
 
-class Learner():#metaclass=abcmeta):
-    """interface For Learning."""
+class Learner():#metaclass=ABCMeta):
+    """Interface for learning."""
 
     
-    Def __init__(self, Train_x, Train_y, C_ratio):
+    def __init__(self, train_X, train_Y, c_ratio):
         
-        Self.x = Np.matrix(train_x)
-        Self.y = Np.matrix(train_y)
+        self.x = np.ones([train_X.shape[0], train_X.shape[1]+1])
+        self.x[:, 1:] = np.matrix(train_X)
+        self.y = np.matrix(train_Y)
         
-        # Orient Y Matrix Correctly
-        If Self.y.shape[0] != 1 Or Self.y.shape[1] > Self.y.shape[0]:
-            Self.y = Self.y.t
+        # orient y matrix correctly
+        if self.y.shape[1] != 1 or self.y.shape[1] > self.y.shape[0]:
+            self.y = self.y.T
             
-        Self.n = Self.x.shape[0]
-        Self.m = Self.x.shape[1]
+        self.n = self.x.shape[0]
+        self.m = self.x.shape[1]
         
-        Self.train_len = 0
-        Self.cross_len = 0
-        Self.c_ratio   = C_ratio
+        self.train_len = 0
+        self.cross_len = 0
+        self.c_ratio   = c_ratio
             
-        Self.train_x   = []
-        Self.train_y   = []
-        Self.c_valid_x = []
-        Self.c_valid_y = []
+        self.train_X   = []
+        self.train_Y   = []
+        self.c_valid_X = []
+        self.c_valid_Y = []
     
-        Self.c_indices = []
+        self.c_indices = []
 
-        Self.set_cross_validation_sets()
+        self.set_cross_validation_sets()
         
-    Def Set_cross_validation_sets(self):
-        If Self.c_ratio > 1 Or Self.c_ratio <= 0:
-            Print('invalid C_ratio: ', Self.c_ratio)
-            Self.c_indices = Np.matrix('-1, -1')
-            Return
+    def set_cross_validation_sets(self):
+        if self.c_ratio > 1 or self.c_ratio <= 0:
+            print('invalid c_ratio: ', self.c_ratio)
+            self.c_indices = np.matrix('-1, -1')
+            return
         
-        Block_size = (int)(self.n * Self.c_ratio)
+        block_size = (int)(self.n * self.c_ratio)
         
-        If Block_size < 1:
-            Print('cross-validation Block_size Is Less Than 1: ', Block_size)        
-            Self.c_indices = Np.matrix('-1, -1')
-            Return
+        if block_size < 1:
+            print('cross-validation block_size is less than 1: ', block_size)        
+            self.c_indices = np.matrix('-1, -1')
+            return
         
-        N_blocks = (int)(self.n / Block_size)
+        n_blocks = (int)(self.n / block_size)
         
-        If Self.n % Block_size != 0:
-            N_blocks += 1
+        if self.n % block_size != 0:
+            n_blocks += 1
         
-        Self.c_indices = Np.empty([n_blocks, 2])
+        self.c_indices = np.empty([n_blocks, 2])
         
-        Self.c_indices[:, 0] = List(range(0, N_blocks * Block_size, Block_size))
-        Self.c_indices[:, 1] = List(range(block_size, N_blocks * Block_size + 1, Block_size))
+        self.c_indices[:, 0] = list(range(0, n_blocks * block_size, block_size))
+        self.c_indices[:, 1] = list(range(block_size, n_blocks * block_size + 1, block_size))
         
-        Self.c_indices[-1, 1] = Self.n  
+        self.c_indices[-1, 1] = self.n  
             
-    Def Set_data(self, C_index):
-        If Np.any(self.c_indices == -1):
-            Self.train_len = Self.n
-            Self.cross_len = 0
+    def set_data(self, c_index):
+        if np.any(self.c_indices == -1):
+            self.train_len = self.n
+            self.cross_len = 0
             
-            Self.train_x = Self.x
-            Self.train_y = Self.y
+            self.train_X = self.x
+            self.train_Y = self.y
             
-            Self.c_valid_x = Np.matrix('0, 0')
-            Self.c_valid_y = Np.matrix('0, 0')
-        Else:
-            Lower = Self.c_indices[c_index][0]
-            Upper = Self.c_indices[c_index][1]
+            self.c_valid_X = np.matrix('0, 0')
+            self.c_valid_Y = np.matrix('0, 0')
+        else:
+            lower = self.c_indices[c_index][0]
+            upper = self.c_indices[c_index][1]
             
-            Self.cross_len = Upper - Lower
-            Self.train_len = Self.n - Self.cross_len
+            self.cross_len = upper - lower
+            self.train_len = self.n - self.cross_len
             
-            Self.c_valid_x = Self.x[lower:upper, :]
-            Self.c_valid_y = Self.y[lower:upper, :]
+            self.c_valid_X = self.x[lower:upper, :]
+            self.c_valid_Y = self.y[lower:upper, :]
             
-            Self.train_x   = Np.empty([self.train_len, Self.m])
-            Self.train_y   = Np.empty([self.train_len, 1])
+            self.train_X   = np.empty([self.train_len, self.m])
+            self.train_Y   = np.empty([self.train_len, 1])
             
-            L_index = 0
-            If Lower-1>= 0:
-                Self.train_x[:lower, :] = Self.x[:lower, :]
-                Self.train_y[:lower, :] = Self.y[:lower, :]
-                L_index = Lower
-            If Upper < Self.n:
-                Self.train_x[l_index:, :] = Self.x[upper:self.n, :]
-                Self.train_y[l_index:, :] = Self.y[upper:self.n, :]
+            l_index = 0
+            if lower-1>= 0:
+                self.train_X[:lower, :] = self.x[:lower, :]
+                self.train_Y[:lower, :] = self.y[:lower, :]
+                l_index = lower
+            if upper < self.n:
+                self.train_X[l_index:, :] = self.x[upper:self.n, :]
+                self.train_Y[l_index:, :] = self.y[upper:self.n, :]
             
-    Def Do_kfold_cross_validation(self):
-        Iter = List(range(self.c_indices.shape[0]))
-        Cross_error = 0
-        
-        For I In Iter:
-            Self.set_data(i)
-            Weights = Self.learn();
-            If Self.cross_len > 0:
-                Cross_error += Self.calc_error(weights, Self.c_valid_x, Self.c_valid_y)
-        
-        Cross_error /= Iter[-1]
-        Return Cross_error
+#    def do_kfold_cross_validation(self):
+#        iter = list(range(self.c_indices.shape[0]))
+#        cross_error = 0
+#        
+#        for i in iter:
+#            self.set_data(i)
+#            weights = self.learn(self.train_X, self.train_Y, c_valid = True);
+#            if self.cross_len > 0:
+#                cross_error += self.calc_error(weights, self.c_valid_X, self.c_valid_Y)
+#        
+#        cross_error /= iter[-1]
+#        return cross_error
 
 #    @abstractmethod
-    Def Learn(self):
-        """to Be Defined In Child Classes."""
+    def learn(self, x, y, c_valid = False):
+        """To be defined in child classes."""
     
 #    @abstractmethod
-    Def Calc_error(self, Weights, X, Y):
-        """to Be Defined In Child Classes."""
+    def calc_error(self, weights, x, y):
+        """To be defined in child classes."""
     
 #    @abstractmethod
-    Def Predict(self, Weights, X):
-        """to Be Defined In Child Classes."""
+    def predict(self, weights, x):
+        """To be defined in child classes."""
     
-    Def Tester(self):
-        Self.do_kfold_cross_validation()
+    def tester(self):
+#        self.do_kfold_cross_validation()
+        pass
     
-        
 if __name__=='__main__':
-    X = Np.matrix([[1, 2], [3, 4], [1, 2], [3, 4]])
-    N = Np.matrix([1, 2, 1, 2])
+    x = np.matrix([[1, 2], [3, 4], [1, 2], [3, 4]])
+    n = np.matrix([1, 0, 1, 0]).T
    
-    Lr = Learner(x, N, 0.25)
-    Lr.tester();
+    lr = Learner(x, n, 0.25)
     
