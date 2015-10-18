@@ -97,4 +97,3 @@ if __name__=='__main__':
 #    lr.learn(x, n)
 #    print('predict')
 #    print(lr.predict(x))
-    

@@ -6,6 +6,7 @@ from collections import Counter
 from sklearn.feature_extraction.text import TfidfVectorizer
 import os.path
 from nltk.stem import WordNetLemmatizer
+import string
 
 stoplist = stopwords.words('english')
 stoplist.append('__eos__',)
@@ -17,17 +18,17 @@ _use_TFIDF_ = True
 no_of_features = 1500
 
 
+class LemmaTokenizer(object):
+    def __init__(self):
+        self.wnl = WordNetLemmatizer()
+
+    def __call__(self, doc):
+        return [self.wnl.lemmatize(t) for t in word_tokenize(str(doc).translate(None, string.punctuation))]            
+
+
 if _use_TFIDF_ :
-    func_tokenizer = TfidfVectorizer(lowercase=True, ngram_range=(1,2), min_df=1, stop_words=stoplist).build_tokenizer()
-    class LemmaTokenizer(object):
-        def __init__(self):
-            self.wnl = WordNetLemmatizer()
-        def __call__(self, doc):
-            return [self.wnl.lemmatize(t) for t in word_tokenize(doc)]
-
-    vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1,2), min_df=1, stop_words=stoplist, max_features=no_of_features, tokenizer = LemmaTokenizer())
-    func_tokenizer = vectorizer.build_tokenizer();
-
+    vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1,2), min_df=1, stop_words=stoplist, max_features=no_of_features, tokenizer=LemmaTokenizer())
+    func_tokenizer =vectorizer.build_tokenizer()
 
 def ispunct(some_string):
     return not any(char.isalnum() for char in some_string)
@@ -107,6 +108,8 @@ def get_tfidf_features(strings, classes, no_of_features, replace, lemmatize, low
     if (not replace) and os.path.isfile("features.npy") : 
         features = np.load("features.npy")
         print ("List of features picked from memory.")
+        for i in range(len(features)):
+            print features[i]
         
     else : 
         i=0

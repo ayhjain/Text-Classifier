@@ -9,13 +9,10 @@ sys.setdefaultencoding('utf8')
 
 import sklearn
 import numpy as np
-from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 from sklearn import svm, linear_model, naive_bayes 
 import nltk.data
 from gaussian import Gaussian
-from collections import Counter
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 ######################################
 # importing from different modoules
@@ -36,7 +33,7 @@ stoplist = stopwords.words('english')
 stoplist.append('__eos__')
 
 no_of_features=1500
-replace = False
+replace = True
 
 ################################################################################
 # reading data set and feature extraction
@@ -82,7 +79,7 @@ def accuracy(gold, predict):
 if __name__ == '__main__':
 	# main driver code
 	
-    filename = sys.argv
+    filename = sys.argv[1]
     entriesToProcess = int(sys.argv[2]);
     
     X, Y = read_data(filename, entriesToProcess)

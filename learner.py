@@ -8,7 +8,7 @@ Created on Wed Oct 13 17:25:59 2015
 import numpy as np
 #import abc as ABCMeta
 
-class Learner():#metaclass=ABCMeta):
+class Learner(object):#metaclass=ABCMeta):
     """Interface for learning."""
 
     
@@ -95,18 +95,18 @@ class Learner():#metaclass=ABCMeta):
                 self.train_X[l_index:, :] = self.x[upper:self.n, :]
                 self.train_Y[l_index:, :] = self.y[upper:self.n, :]
             
-#    def do_kfold_cross_validation(self):
-#        iter = list(range(self.c_indices.shape[0]))
-#        cross_error = 0
-#        
-#        for i in iter:
-#            self.set_data(i)
-#            weights = self.learn(self.train_X, self.train_Y, c_valid = True);
-#            if self.cross_len > 0:
-#                cross_error += self.calc_error(weights, self.c_valid_X, self.c_valid_Y)
-#        
-#        cross_error /= iter[-1]
-#        return cross_error
+    def do_kfold_cross_validation(self):
+        iter = list(range(self.c_indices.shape[0]))
+        cross_error = 0
+        
+        for i in iter:
+            self.set_data(i)
+            weights = self.learn(self.train_X, self.train_Y, c_valid = True);
+            if self.cross_len > 0:
+                cross_error += self.calc_error(weights, self.c_valid_X, self.c_valid_Y)
+        
+        cross_error /= iter[-1]
+        return cross_error
 
 #    @abstractmethod
     def learn(self, x, y, c_valid = False):
