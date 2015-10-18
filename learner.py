@@ -13,6 +13,9 @@ class Learner(object):
 
     
     def __init__(self, train_X, train_Y, c_ratio):
+        '''Initializes learner object
+        1. Appends bias column to X
+        2. sets cross-validation partitions.'''
         
         self.x = np.ones([train_X.shape[0], train_X.shape[1]+1])
         self.x[:, 1:] = np.matrix(train_X)
@@ -114,17 +117,38 @@ class Learner(object):
 
 #    @abstractmethod
     def learn(self, x, y, c_valid = False):
-        """To be defined in child classes."""
+        '''Trains the data
+        x      : (nxm matrix) Training data
+        y      : (nx1 matrix) Target data
+        c_valid: (Boolean) Set to true when learning for cross_validation
+        
+        Does not return any value. Learned parameters are stored within the class
+        Note: n is the number of examples in training data set, m is the 
+              number of features.'''
     
 #    @abstractmethod
     def calc_error(self, target, y):
-        """To be defined in child classes."""
+        '''Calculates error between predicted values and actual values
+        target : (nx1 array) Predicted values
+        y      : (nx1 matrix) Actual Values
+        
+        @return: (float) error
+        Note: n is the number of examples.'''
     
 #    @abstractmethod
     def predict(self, x, c_valid = False):
-        """To be defined in child classes."""
+        '''Make predictions based on trained model
+        x      : (nxm matrix) Data to be used for prediction
+        c_valid: (Boolean) Set to true when learning for cross_validation
+        
+        @return: (nx1 array) Predicted values
+        Note: n is the number of examples in training data set.'''
     
     def tester(self):
+        '''This is just for testing
+        Add the code to be tested into this function.
+        This will be called from main().
+        Remove 'pass' when there is code added.'''
 #        self.do_kfold_cross_validation()
         pass
 
