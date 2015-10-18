@@ -14,8 +14,14 @@ class Learner(object):
     
     def __init__(self, train_X, train_Y, c_ratio):
         '''Initializes learner object
+        All prediction variables should be initialized in 
+        derived class's __init__()
+        The following is done here. Any other pre-processsing specific
+        to dervied classes should be done in the derived class
+        
         1. Appends bias column to X
-        2. sets cross-validation partitions.'''
+        2. sets cross-validation partitions.
+        '''
         
         self.x = np.ones([train_X.shape[0], train_X.shape[1]+1])
         self.x[:, 1:] = np.matrix(train_X)
@@ -42,6 +48,9 @@ class Learner(object):
         self.set_cross_validation_sets()
         
     def set_cross_validation_sets(self):
+        '''Decides the partitions for different cross-validation sets
+        and populates c_indices.'''
+        
         if self.c_ratio > 1 or self.c_ratio <= 0:
             print('invalid c_ratio: ', self.c_ratio)
             self.c_indices = np.matrix('-1, -1')
@@ -67,6 +76,9 @@ class Learner(object):
         self.c_indices[-1, 1] = self.n  
             
     def set_data(self, c_index):
+        '''Populates train_X, train_Y, c_valid_X and c_valid_Y 
+        for cross validation round i.'''
+        
         if np.any(self.c_indices == -1):
             self.train_len = self.n
             self.cross_len = 0
@@ -102,14 +114,15 @@ class Learner(object):
         iter = list(range(self.c_indices.shape[0]))
         cross_error = 0
         
+        #Itertatively perform cross validation
         for i in iter:
             self.set_data(i)
             self.learn(self.train_X, self.train_Y, c_valid = True)
-            target = self.predict(self.c_valid_X, c_valid = True)
+            predict = self.predict(self.c_valid_X, c_valid = True)
             if self.cross_len > 0:
-                c_err = self.calc_error(target, self.c_valid_Y)
+                c_err = self.calc_error(predict, self.c_valid_Y)
                 print('cross_error', i, ':', c_err)
-                print(accuracy(target, self.c_valid_Y))
+                print(accuracy(predict, self.c_valid_Y))
                 cross_error += c_err ** 2
         
         cross_error /= iter[-1]
@@ -127,9 +140,9 @@ class Learner(object):
               number of features.'''
     
 #    @abstractmethod
-    def calc_error(self, target, y):
+    def calc_error(self, predict, y):
         '''Calculates error between predicted values and actual values
-        target : (nx1 array) Predicted values
+        predict : (nx1 array) Predicted values
         y      : (nx1 matrix) Actual Values
         
         @return: (float) error
@@ -152,15 +165,22 @@ class Learner(object):
 #        self.do_kfold_cross_validation()
         pass
 
-def accuracy(gold, predict):
-    assert len(gold) == len(predict)
-    assert len(gold) != 0 and len(predict) != 0
+def accuracy(predict, y):
+    '''Caclulate accuracy of classification.
+    
+    y      : (nx1 matrix) Actual values
+    predict: (nx1 array) Predicted values    
+    
+    Note: n is then number of examples.'''
+    
+    assert len(y) == len(predict)
+    assert len(y) != 0 and len(predict) != 0
     corr = 0
-    for i in range(len(gold)):
-        if int(gold[i]) == int(predict[i, 0]):
+    for i in range(len(y)):
+        if int(y[i, 0]) == int(predict[i]):
             corr += 1
-    acc = float(corr) / len(gold)
-    print ("Accuracy %d / %d = %.4f" % (corr, len(gold), acc))
+    acc = float(corr) / len(y)
+    print ("Accuracy %d / %d = %.4f" % (corr, len(y), acc))
    
 if __name__=='__main__':
     x = np.matrix([[1, 2], [3, 4], [1, 2], [3, 4]])
