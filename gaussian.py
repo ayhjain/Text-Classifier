@@ -84,6 +84,6 @@ if __name__=='__main__':
     n = np.array([1, 0, 1, 0]).T
    
     lr = Gaussian(x, n, 0.25)
-    lr.learn(x, n)
-    print('predict')
-    print(lr.predict(x))
+    #lr.learn(x, n)
+    #print('predict')
+    #print(lr.predict(x))

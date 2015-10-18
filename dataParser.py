@@ -6,7 +6,7 @@ def parseCSV(filename, entriesToProcess):
     x = []
     y = []
     
-    with open(filename, 'rU', encoding="utf-8") as inputs:
+    with open(filename, 'rU') as inputs:
         reader = csv.DictReader(inputs)
         i = 0
         for row in reader :
@@ -20,7 +20,7 @@ def parseCSV(filename, entriesToProcess):
             if (i >= entriesToProcess and entriesToProcess >= 0):
                 break
 
-    print ("Done parsing!")
+    print ("Parsing done!")
     y = np.array(y)
     return x,y
 
