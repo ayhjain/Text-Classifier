@@ -7,6 +7,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import os.path
 from nltk.stem import WordNetLemmatizer
 import string
+import pickle
 
 stoplist = stopwords.words('english')
 stoplist.append('__eos__',)
@@ -15,7 +16,7 @@ stoplist.append('__EOS__')
 
 
 _use_TFIDF_ = True
-no_of_features = 1500
+no_of_features = 20000
 
 
 class LemmaTokenizer(object):
@@ -120,6 +121,14 @@ def get_tfidf_features(strings, classes, no_of_features, replace, lemmatize, low
         
         vectorizer.fit_transform(bow)
         featureList = list(vectorizer.get_feature_names())
+        idf = vectorizer.idf_
+
+        #print ("Feature list with its TfIdf scores- ")
+        #for i in zip(vectorizer.get_feature_names(), idf): print i
+
+        dictionary = dict(zip(vectorizer.get_feature_names(), idf))
+        pickle.dump(dictionary, open('feature_idf_score.txt', 'wb'))
+
         print ("New list of features created.")
         features = np.array(featureList)
         np.save("features", features)
