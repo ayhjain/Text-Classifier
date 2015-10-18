@@ -109,7 +109,7 @@ def get_tfidf_features(strings, classes, no_of_features, replace, lemmatize, low
         features = np.load("features.npy")
         print ("List of features picked from memory.")
         for i in range(len(features)):
-            print features[i]
+            print (features[i])
         
     else : 
         i=0

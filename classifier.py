@@ -33,7 +33,7 @@ stoplist = stopwords.words('english')
 stoplist.append('__eos__')
 
 no_of_features=1500
-replace = True
+replace = False
 
 ################################################################################
 # reading data set and feature extraction
@@ -47,6 +47,7 @@ def read_data(filename, entriesToProcess):
     os.chdir("Data")
 
     if (not replace) and os.path.isfile("featureMatrix.npy") and os.path.isfile("prediction.npy") : 
+        print('Reading saved data from npy file')        
         X = np.load("featureMatrix.npy")
         Y = np.load("prediction.npy")
 
@@ -80,7 +81,7 @@ if __name__ == '__main__':
 	# main driver code
 	
     filename = sys.argv[1]
-    entriesToProcess = int(sys.argv[2]);
+    entriesToProcess = int(sys.argv[2])
     
     X, Y = read_data(filename, entriesToProcess)
     
