@@ -78,23 +78,24 @@ class Gaussian(Learner):
                 res.append(x[i, :])
         return np.matrix(res)
     
-    def calc_error(self, target, y):
-        if len(y) != len(target):
+    def calc_error(self, predict, y):
+        if len(y) != len(predict):
             return 1
-        if len(y) == 0 or len(target) == 0:
+        if len(y) == 0 or len(predict) == 0:
             return 1
         
         corr = 0
-        for i in range(len(target)):
-            if int(y[i, 0]) != int(target[i]):
+        for i in range(len(predict)):
+            if int(y[i, 0]) != int(predict[i]):
                 corr += 1
-        err = float(corr) / len(target)
-        print (err)
+        err = float(corr) / len(predict)
         return err
 
     def tester(self):
-        x = np.matrix([[1, 2], [3, 4], [1, 2], [3, 4]])
-        n = np.matrix([1, 0, 1, 0]).T
+        c_err = self.do_kfold_cross_validation()
+        print('final cross_error:', c_err)
+#        self.learn(x, n)
+#        print(self.predict(x))
         
         self.learn(x, n)
         print(self.predict(x))
