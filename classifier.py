@@ -12,14 +12,14 @@ import numpy as np
 from nltk.corpus import stopwords
 from sklearn import svm, linear_model, naive_bayes 
 import nltk.data
-from gaussian import Gaussian
+
 
 ######################################
 # importing from different modoules
 from dataParser import parseCSV
 from featureSelector import extract_featureMatrix
-
-import svmClassifier as SVM
+from gaussian import Gaussian
+from svmClassifier import SVM
 
 ######################################
 # model parameters
@@ -110,8 +110,8 @@ if __name__ == '__main__':
     print ("==============================================================================")
     print ("SVM Appproach")
     
-    svm_classifier = SVM.svm()
-    svm_classifier.train(train_X, train_Y)
+    svm_classifier = SVM(train_X, train_Y, 0.2)
+    svm_classifier.learn(train_X, train_Y)
     
     print ("Training Data Analysis:")
     predict = svm_classifier.predict(train_X)

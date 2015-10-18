@@ -86,7 +86,7 @@ def extract_featureMatrix(strings, classes, no_of_features,replace, lemmatize, l
 
         j=0
         if i%100 == 0:
-            print ("Processing ",(i+1),"th entry.", sep='')
+            print ("Processing ",(i+1),"th entry.")
         dict_token = Counter(tokens)
         for inst in featurelist : 
             if (inst in tokens): 
