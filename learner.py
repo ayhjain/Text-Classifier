@@ -8,7 +8,7 @@ Created on Wed Oct 13 17:25:59 2015
 import numpy as np
 #import abc as ABCMeta
 
-class Learner(object):#metaclass=ABCMeta):
+class Learner(object):
     """Interface for learning."""
 
     
@@ -21,7 +21,7 @@ class Learner(object):#metaclass=ABCMeta):
         # orient y matrix correctly
         if self.y.shape[1] != 1 or self.y.shape[1] > self.y.shape[0]:
             self.y = self.y.T
-            
+        
         self.n = self.x.shape[0]
         self.m = self.x.shape[1]
         
@@ -101,9 +101,13 @@ class Learner(object):#metaclass=ABCMeta):
         
         for i in iter:
             self.set_data(i)
-            weights = self.learn(self.train_X, self.train_Y, c_valid = True);
+            self.learn(self.train_X, self.train_Y, c_valid = True)
+            target = self.predict(self.c_valid_X, c_valid = True)
             if self.cross_len > 0:
-                cross_error += self.calc_error(weights, self.c_valid_X, self.c_valid_Y)
+                c_err = self.calc_error(target, self.c_valid_Y)
+                print('cross_error', i, ':', c_err)
+                print(accuracy(target, self.c_valid_Y))
+                cross_error += c_err ** 2
         
         cross_error /= iter[-1]
         return cross_error
@@ -113,17 +117,27 @@ class Learner(object):#metaclass=ABCMeta):
         """To be defined in child classes."""
     
 #    @abstractmethod
-    def calc_error(self, weights, x, y):
+    def calc_error(self, target, y):
         """To be defined in child classes."""
     
 #    @abstractmethod
-    def predict(self, weights, x):
+    def predict(self, x, c_valid = False):
         """To be defined in child classes."""
     
     def tester(self):
 #        self.do_kfold_cross_validation()
         pass
-    
+
+def accuracy(gold, predict):
+    assert len(gold) == len(predict)
+    assert len(gold) != 0 and len(predict) != 0
+    corr = 0
+    for i in range(len(gold)):
+        if int(gold[i]) == int(predict[i, 0]):
+            corr += 1
+    acc = float(corr) / len(gold)
+    print ("Accuracy %d / %d = %.4f" % (corr, len(gold), acc))
+   
 if __name__=='__main__':
     x = np.matrix([[1, 2], [3, 4], [1, 2], [3, 4]])
     n = np.matrix([1, 0, 1, 0]).T
