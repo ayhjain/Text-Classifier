@@ -24,7 +24,6 @@ def parseCSV(filename, entriesToProcess):
     y = np.array(y)
     return x,y
 
-
 if __name__ == "__main__" : 
     
     filename = sys.argv[1]

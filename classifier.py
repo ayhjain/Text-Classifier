@@ -67,6 +67,7 @@ def read_data(filename, entriesToProcess):
 # evaluation code
 def accuracy(gold, predict):
     assert len(gold) == len(predict)
+    assert len(gold) != 0 and len(predict) != 0
     corr = 0
     for i in xrange(len(gold)):
         if int(gold[i]) == int(predict[i]):
@@ -81,15 +82,15 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     entriesToProcess = int(sys.argv[2]);
     
-    noOfTrainingEntries = int(entriesToProcess * trainingDataPortion)
-    
     X, Y = read_data(filename, entriesToProcess)
+    
+    noOfTrainingEntries = int(Y.shape[0] * trainingDataPortion)
     
     train_X = X[:noOfTrainingEntries, :]
     train_Y = Y[:noOfTrainingEntries]
     test_X = X[noOfTrainingEntries:,:]
     test_Y = Y[noOfTrainingEntries:]
-         
+    
     #Naive Bayes
     print ("==============================================================================")
     print ("Naive Bayes Appproach")
@@ -103,8 +104,6 @@ if __name__ == '__main__':
     	
     print ("\nTesting Data Analysis:")
     predict = gnb.predict(test_X)	
-    print(predict)
-    print(test_Y)
     accuracy(test_Y, predict)
     
     #SVM
