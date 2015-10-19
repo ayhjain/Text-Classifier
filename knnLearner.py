@@ -16,24 +16,27 @@ import heapq
 
 class TargetDistance(object): 
 
-    def __init__(self, distance, value):
+    def __init__(self, distance, value, classification):
         self.distance = distance
         self.value = value
+        self.classification = classification
 
     def __lt__(self, other):
         return self.distance < other.distance
 
 class BallTreeNode(object):
 
-    def __init__(self, points):
+    def __init__(self, points, classification):
         self.is_leaf = (points.shape[0] == 1)
         if self.is_leaf:
             self.radius = 0
             self.pivot = points[0, :]
+            self.classification = classification[0]
         else: 
             spread = points.max(0) - points.min(0)
             self.radius = spread.max() * 0.5
             self.pivot = 0.5 * (points.max(0) + points.min(0))
+            self.classification = None
         self.child1 = None
         self.child2 = None
 
@@ -58,9 +61,9 @@ class BallTreeNode(object):
         distance = self.min_distance(target)
         if self.is_leaf:
             if len(heap) < size_k:
-                heapq.heappush(heap, TargetDistance(-distance, self.pivot))
+                heapq.heappush(heap, TargetDistance(-distance, self.pivot, self.classification))
             else: 
-                heapq.heappushpop(heap, TargetDistance(-distance, self.pivot))
+                heapq.heappushpop(heap, TargetDistance(-distance, self.pivot, self.classification))
         elif len(heap) == size_k and distance >= -heap[0].distance: # compare against largest element in heap
             return
         else:
@@ -72,38 +75,44 @@ class BallTreeNode(object):
 
 
     @staticmethod
-    def construct_balltree(points):
+    def construct_balltree(points, classification):
         (n, m) = points.shape
         if n == 1:
-            return BallTreeNode(points)
+            return BallTreeNode(points, classification)
         else: 
             spread = points.max(0) - points.min(0)
             c = spread.argmax()
             median = np.median(points[:, c])
-            ball_tree = BallTreeNode(points)
+            ball_tree = BallTreeNode(points, classification)
             left = np.ndarray((n/2, m))
+            left_classification = np.ndarray((n/2))
             right = np.ndarray((n - n/2, m))
+            right_classification = np.ndarray((n - n/2))
             left_index = 0
             right_index = 0
             same_as_median = []
             for i in range(n):
                 if points[i, c] < median:
                     left[left_index, :] = points[i, :]
+                    left_classification[left_index] = classification[i]
                     left_index += 1
                 elif points[i, c] > median:
                     right[right_index, :] = points[i, :]
+                    right_classification[right_index] = classification[i]
                     right_index += 1
                 else:
                     same_as_median.append(i)
             for i in same_as_median:
                 if left_index < n/2:
                     left[left_index, :] = points[i, :]
+                    left_classification[left_index] = classification[i]
                     left_index += 1
                 else:
                     right[right_index, :] = points[i, :]
+                    right_classification[right_index] = classification[i]
                     right_index += 1
-            ball_tree.child1 = BallTreeNode.construct_balltree(left)
-            ball_tree.child2 = BallTreeNode.construct_balltree(right)
+            ball_tree.child1 = BallTreeNode.construct_balltree(left, left_classification)
+            ball_tree.child2 = BallTreeNode.construct_balltree(right, right_classification)
             return ball_tree
 
 
@@ -134,6 +143,22 @@ class KnnLearner(object):
                 votes[classification] = 1
         return max(votes, key=votes.get)
     
+
+
+    def predict_with_tree(self, X, ball_tree):
+        """ Predicts class for examples in X using knn and ball_tree for neighbour lookup"""
+        predicted_y = np.zeros(X.shape[0])
+        for i in range(X.shape[0]):
+            neighbours = []
+            ball_tree.knn_search(X[i], self.k_nearest, neighbours)
+            votes = {}
+            for neighbour in neighbours:
+                if neighbour.classification in votes:
+                    votes[neighbour.classification] += 1
+                else:
+                    votes[neighbour.classification] = 1
+            predicted_y[i] = max(votes, key=votes.get)
+        return predicted_y
 
     def predict(self, X):
         """ Predicts class for example x using knn"""
@@ -186,44 +211,47 @@ if __name__=='__main__':
     test_x = X[split:, :]
     test_y = y[split:]
 
-    tree = BallTreeNode.construct_balltree(train_x)
+    tree = BallTreeNode.construct_balltree(train_x, train_y)
 
     learner = KnnLearner(train_x, train_y, 3)
     target = test_x[0, :]
     neighbours = learner.get_neighbours(target, 3)
     print '\nbrute force\n------------'
     for i in neighbours:
-        print train_x[i]
+        print '{}, {}'.format(train_x[i], train_y[i])
 
     heap = []
     tree.knn_search(target, 3, heap)
     print '\nball tree\n------------'
     for x in heap:
-        print x.value
+        print '{}, {}'.format(x.value, x.classification)
 
     print '\ntarget'
     print target
 
 
 
-    # predicted_y = learner.predict(test_x)
-    # print 'Accuracy of knn learner is {:.2%}'.format(learner.get_accuracy(predicted_y, test_y, log_tests=True))
+    tree_predicted_y = learner.predict_with_tree(test_x, tree)
+    predicted_y = learner.predict(test_x)
+    print 'Accuracy of knn learner is {:.2%}'.format(learner.get_accuracy(predicted_y, test_y))
+    print 'Accuracy of optimized knn learner is {:.2%}'.format(learner.get_accuracy(tree_predicted_y, test_y))
 
-    # plt.figure(2, figsize=(8, 6))
-    # plt.clf()
+
+    plt.figure(2, figsize=(8, 6))
+    plt.clf()
 
 
     # Plot the training points    
-    # plt.scatter(train_x[:, 0], train_x[:, 1], c=train_y, cmap=plt.cm.Set1)
-    # plt.scatter(test_x[:, 0], test_x[:, 1], c=tmp, cmap=plt.cm.Set1)
-    # plt.xlabel('Sepal length')
-    # plt.ylabel('Sepal width')
+    plt.scatter(train_x[:, 0], train_x[:, 1], c=train_y, cmap=plt.cm.Set1)
+    plt.scatter(test_x[:, 0], test_x[:, 1], c='black')
+    plt.xlabel('Sepal length')
+    plt.ylabel('Sepal width')
 
-    # plt.xlim(x_min, x_max)
-    # plt.ylim(y_min, y_max)
-    # plt.xticks(())
-    # plt.yticks(())
-    # plt.show()
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+    plt.xticks(())
+    plt.yticks(())
+    plt.show()
 
     
 
