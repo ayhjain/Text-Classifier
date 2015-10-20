@@ -20,7 +20,7 @@ class Gaussian(Learner):
     def calc_log_likelihood(self, x):
         log_likelihood = []
         for class_i in range(np.size(self.classes)):
-            prob = -0.5 * np.sum((np.array((x-self.mu[class_i])) ** 2) / 
+            prob = -1 * np.sum((np.array((x-self.mu[class_i])) ** 2) / 
                                          ( 2 * np.array(self.sigma[class_i])) ** 2, 1) #confirm this gaussian definition
             prob -= 0.5 * np.sum(np.log(2 * np.pi * self.sigma[class_i]))
             
