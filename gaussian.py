@@ -21,7 +21,7 @@ class Gaussian(Learner):
         log_likelihood = []
         for class_i in range(np.size(self.classes)):
             prob = -0.5 * np.sum((np.array((x-self.mu[class_i])) ** 2) / 
-                                         (self.sigma[class_i]), 1) #confirm this gaussian definition
+                                         ( 2 * np.array(self.sigma[class_i])) ** 2, 1) #confirm this gaussian definition
             prob -= 0.5 * np.sum(np.log(2 * np.pi * self.sigma[class_i]))
             
             prob += np.log(self.class_prob[class_i])
@@ -58,7 +58,7 @@ class Gaussian(Learner):
             
             self.class_prob[class_i] = x_feat.shape[0]/n
             
-        self.sigma[:, :] += 1e-9 * np.var(x, axis = 0).max()
+        self.sigma[:, :] += 1e-19 * np.var(x, axis = 0).max()
         
     def predict(self, x, c_valid=False):
         if c_valid == False:        
