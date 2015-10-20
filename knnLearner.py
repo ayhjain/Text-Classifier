@@ -12,6 +12,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import math
 import heapq
+import csv
 
 
 class TargetDistance(object): 
@@ -193,19 +194,30 @@ class KnnLearner(object):
                 print 'predicted = {0}, actual = {1}'.format(predicted_y[i], actual_y[i])
         return float(sum(predicted_y == actual_y)) / predicted_y.shape[0]
 
+
 if __name__=='__main__':
    
-    iris = datasets.load_iris()
-    X = iris.data[:, :2] # we only take the first two features.
-    y = iris.target
+    # iris = datasets.load_iris()
+    # X = iris.data[:, :2] # we only take the first two features.
+    # y = iris.target
+    # y[y == 2] = 1 # get rid of 3rd classifaction type
 
+    with open('train_features.csv', 'r') as csvfile:
+        data = list(csv.reader(csvfile))
+        data = np.array(data)
+        data = data.astype(np.float32)
+
+    (n, m) = data.shape
+    X = data[:, :m-1]
+    y = data[:, m-1]
     perm = np.random.permutation(X.shape[0])
     X = X[perm, :]
     y = y[perm]
     x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
     y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
 
-    split = int(0.66 * X.shape[0])
+    split = int(0.75 * X.shape[0])
+    num_neighbours = 10
     train_x = X[0:split, :]
     train_y = y[0:split]
     test_x = X[split:, :]
@@ -213,15 +225,15 @@ if __name__=='__main__':
 
     tree = BallTreeNode.construct_balltree(train_x, train_y)
 
-    learner = KnnLearner(train_x, train_y, 3)
+    learner = KnnLearner(train_x, train_y, num_neighbours)
     target = test_x[0, :]
-    neighbours = learner.get_neighbours(target, 3)
+    neighbours = learner.get_neighbours(target, num_neighbours)
     print '\nbrute force\n------------'
     for i in neighbours:
         print '{}, {}'.format(train_x[i], train_y[i])
 
     heap = []
-    tree.knn_search(target, 3, heap)
+    tree.knn_search(target, num_neighbours, heap)
     print '\nball tree\n------------'
     for x in heap:
         print '{}, {}'.format(x.value, x.classification)
@@ -240,12 +252,15 @@ if __name__=='__main__':
     plt.figure(2, figsize=(8, 6))
     plt.clf()
 
-
+    results = ['black'] * test_x.shape[0]
+    for i in range(len(results)):
+        if predicted_y[i] == test_y[i]:
+            results[i] = 'green'
     # Plot the training points    
-    plt.scatter(train_x[:, 0], train_x[:, 1], c=train_y, cmap=plt.cm.Set1)
-    plt.scatter(test_x[:, 0], test_x[:, 1], c='black')
-    plt.xlabel('Sepal length')
-    plt.ylabel('Sepal width')
+    plt.scatter(train_x[:, 0], train_x[:, 1], c=train_y, cmap=plt.cm.Paired)
+    # plt.scatter(test_x[:, 0], test_x[:, 1], c=results)
+    plt.xlabel('music')
+    plt.ylabel('movie')
 
     plt.xlim(x_min, x_max)
     plt.ylim(y_min, y_max)
