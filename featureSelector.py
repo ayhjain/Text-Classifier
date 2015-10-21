@@ -124,6 +124,51 @@ def extract_featureMatrix(strings, classes, no_of_features,replace, lemmatize, l
     return featureMatrix
 
 
+
+def extract_feature_Test(strings, entriesToProcess):
+    '''
+    Extract features from text file f into a feature vector.
+    '''
+    os.chdir("Data")
+    featurelist = np.load("features.npy")
+    os.chdir("..")
+    
+    noOfFeatures = len(featurelist) # Total no. of features
+    #featurelist = set(featurelist)
+    featureMatrix = np.zeros(shape=[entriesToProcess, noOfFeatures])
+    i = 0
+    for str in strings : 
+        
+        '''
+        if _use_TFIDF_ : 
+            tokens = list(s.lower() for s in func_tokenizer(str) if s.lower() not in stoplist)
+        
+        else : 
+            bigram=[]
+            tokens = get_tokens(str)
+            pair = list(p1+" "+p2 for p1,p2 in nltk.bigrams(tokens))
+            tokens.extend(pair)
+        '''
+        dict_token={}
+        for s in func_tokenizer(str):
+            if (s in featurelist):
+                if (s in dict_token):
+                    dict_token[s] += 1
+                else:
+                    dict_token[s] = 1
+        j=0
+        if i%100 == 0:
+            print "Processing ",(i+1),"th test entry."
+        
+        for inst in featurelist : 
+            if inst in dict_token:
+                featureMatrix[i,j] = dict_token[inst]
+            j+=1
+        i+=1
+    
+    return featureMatrix
+
+
 def get_tfidf_features(strings, classes, no_of_features, replace, lemmatize, lowercase):
 #   Returns the bag of most common n words for each category
     directory =os.getcwd()
