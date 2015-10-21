@@ -1,5 +1,9 @@
 import csv, sys
 import numpy as np
+from myScripts import process_text
+import sys, os, codecs
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 def parseCSV(filename, entriesToProcess):
     
@@ -12,7 +16,7 @@ def parseCSV(filename, entriesToProcess):
         for row in reader :
             try:
                 y.append(row['Prediction'])
-                x.append(row['Interview'])
+                x.append(process_text(row["Interview"]))
             except:
                 print ("Error parsing ", i,"th entry")
                 # control shouldn't be in this portion of Code
