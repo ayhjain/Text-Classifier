@@ -2,16 +2,22 @@ import numpy as np
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
-from collections import Counter
+from collections import Counter, defaultdict
 from sklearn.feature_extraction.text import TfidfVectorizer
 import os.path
 from nltk.stem import WordNetLemmatizer
 import string
 import pickle
 
+import sys, os, codecs
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 stoplist = stopwords.words('english')
 stoplist.append('__eos__',)
 stoplist.append('__EOS__')
+stoplist.append('eos')
+stoplist.append('EOS')
 
 
 
@@ -24,11 +30,19 @@ class LemmaTokenizer(object):
         self.wnl = WordNetLemmatizer()
 
     def __call__(self, doc):
-        return [self.wnl.lemmatize(t) for t in word_tokenize(str(doc).translate(None, string.punctuation))]            
+        doc = str(doc)
+        s = "".join(doc.split("__EOS__"))
+        print s
+        doc = s.translate(None, string.punctuation)
+        tokens = doc.word_tokenize(doc)
+        bi = list(p1+" "+p2 for p1,p2 in nltk.bigrams(tokens))
+        tokens.extend(bi)
+        return [self.wnl.lemmatize(t) for t in tokens]            
 
 
 if _use_TFIDF_ :
-    vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1,2), min_df=1, stop_words=stoplist, max_features=no_of_features, tokenizer=LemmaTokenizer())
+    #vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1,2), min_df=1, stop_words=stoplist, max_features=no_of_features, tokenizer=LemmaTokenizer())
+    vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1,2), min_df=1, stop_words=stoplist, max_features=no_of_features)
     func_tokenizer =vectorizer.build_tokenizer()
 
 def ispunct(some_string):
@@ -64,38 +78,47 @@ def extract_featureMatrix(strings, classes, no_of_features,replace, lemmatize, l
     lemmatize: (boolean) whether or not to lemmatize
     lowercase: (boolean) whether or not to lowercase everything
     '''
+    '''
     if _use_TFIDF_ : 
         featurelist = get_tfidf_features(strings, classes, no_of_features, replace, lemmatize, lowercase)
     else :
         featurelist = get_bagofwords(strings, classes, m, l, lemmatize, lowercase)
+    '''
 
-    print (featurelist)
+    featurelist = get_tfidf_features(strings, classes, no_of_features, replace, lemmatize, lowercase)
+    #print (featurelist)
     
     noOfFeatures = len(featurelist) # Total no. of features
-    
+    #featurelist = set(featurelist)
     featureMatrix = np.zeros(shape=[entriesToProcess, noOfFeatures])
     i = 0
     for str in strings : 
         
+        '''
         if _use_TFIDF_ : 
             tokens = list(s.lower() for s in func_tokenizer(str) if s.lower() not in stoplist)
+        
         else : 
             bigram=[]
             tokens = get_tokens(str)
             pair = list(p1+" "+p2 for p1,p2 in nltk.bigrams(tokens))
             tokens.extend(pair)
-
+        '''
+        dict_token={}
+        for s in func_tokenizer(str):
+            if (s in featurelist):
+                if (s in dict_token):
+                    dict_token[s] += 1
+                else:
+                    dict_token[s] = 1
         j=0
         if i%100 == 0:
             print ("Processing ",(i+1),"th entry.")
-        dict_token = Counter(tokens)
-        for inst in featurelist : 
-            if (inst in tokens): 
-                featureMatrix[i,j] = dict_token[inst]
-            else :
-                featureMatrix[i,j] = 0
-            j+=1
         
+        for inst in featurelist : 
+            if inst in dict_token:
+                featureMatrix[i,j] = dict_token[inst]
+            j+=1
         i+=1
     
     return featureMatrix
@@ -108,9 +131,9 @@ def get_tfidf_features(strings, classes, no_of_features, replace, lemmatize, low
 
     if (not replace) and os.path.isfile("features.npy") : 
         features = np.load("features.npy")
-        print ("List of features picked from memory.")
-        for i in range(len(features)):
-            print (features[i])
+       # print ("List of features picked from memory.")
+       # for i in range(len(features)):
+        #    print features[i]
         
     else : 
         i=0
@@ -132,7 +155,6 @@ def get_tfidf_features(strings, classes, no_of_features, replace, lemmatize, low
         print ("New list of features created.")
         features = np.array(featureList)
         np.save("features", features)
-        print ("New list of features created.")
     
     os.chdir("..")
     return features
