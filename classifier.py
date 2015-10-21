@@ -5,7 +5,7 @@ Created on Oct 7, 2015
 
 import sys, os, codecs
 reload(sys)
-sys.setdefaultencoding('utf8')
+sys.setdefaultencoding('utf-8')
 
 import sklearn
 import numpy as np

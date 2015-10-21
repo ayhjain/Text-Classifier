@@ -1,5 +1,8 @@
 import csv, sys
 import numpy as np
+import sys, os, codecs
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 def parseCSV(filename, entriesToProcess):
     
