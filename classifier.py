@@ -16,11 +16,11 @@ import nltk.data
 
 ######################################
 # importing from different modoules
-from dataParser import parseCSV
-from featureSelector import extract_featureMatrix
+from dataParser import parseCSV, parseTestCSV
+from featureSelector import extract_featureMatrix, extract_feature_Test
 from gaussian import Gaussian
 from svmClassifier import SVM
-
+from sklearn import svm
 ######################################
 # model parameters
 m = 500
@@ -64,6 +64,16 @@ def read_data(filename, entriesToProcess):
     return X, Y
 
 
+def read_test(filename):
+    '''
+    Read testset and return feature matrix X.
+    X - (entriesToProcess x nfeats)
+    '''
+    interviews = parseTestCSV(filename, -1)
+    entriesToProcess = len(interviews)
+    X = extract_feature_Test(interviews, entriesToProcess)
+    return X
+
 ################################################################################
 # evaluation code
 def accuracy(gold, predict):
@@ -84,7 +94,8 @@ if __name__ == '__main__':
     entriesToProcess = int(sys.argv[2])
     
     X, Y = read_data(filename, entriesToProcess)
-    
+
+
     noOfTrainingEntries = int(Y.shape[0] * trainingDataPortion)
     
     train_X = X[:noOfTrainingEntries, :]
@@ -92,6 +103,11 @@ if __name__ == '__main__':
     test_X = X[noOfTrainingEntries:,:]
     test_Y = Y[noOfTrainingEntries:]
     
+    test = read_test("ml_dataset_test_in.csv")
+
+
+
+    '''
     #Naive Bayes
     print ("==============================================================================")
     print ("Naive Bayes Appproach")
@@ -100,25 +116,44 @@ if __name__ == '__main__':
     gnb.learn(train_X, train_Y)
     
     print ("Training Data Analysis:")
-    predict = gnb.predict(train_X)
-    accuracy(train_Y, predict)
+    #predict = gnb.predict(train_X)
+    #accuracy(train_Y, predict)
     	
     print ("\nTesting Data Analysis:")
     predict = gnb.predict(test_X)	
     accuracy(test_Y, predict)
-    
+    '''
     #SVM
     print ("==============================================================================")
     print ("SVM Appproach")
     
-    svm_classifier = SVM(train_X, train_Y, 0.2)
-    svm_classifier.learn(train_X, train_Y)
+    #svm_classifier = SVM(train_X, train_Y, 0.2)
+    #svm_classifier.learn(train_X, train_Y)
     
+    
+    svm_clas = svm.LinearSVC()
+    svm_clas.fit(train_X, train_Y)
+
+    
+    '''
     print ("Training Data Analysis:")
     predict = svm_classifier.predict(train_X)
     accuracy(train_Y, predict)
+    '''
+    #print ("\nTesting Data Analysis:")
     
-    print ("\nTesting Data Analysis:")
-    predict = svm_classifier.predict(test_X)    
-    accuracy(test_Y, predict)
+
+    predict = svm_clas.predict(test)
+    
+
+    #predict = svm_classifier.predict(test)    
+    # accuracy(test_Y, predict)
+    
+    print "List of predicted classes- "
+    k = 0
+    for i in predict:
+        print k, i
+        k +=1
+    
+    
     print ("==============================================================================")
