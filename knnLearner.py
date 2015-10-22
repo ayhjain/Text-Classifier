@@ -12,6 +12,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import math
 import heapq
+import matplotlib.patches as mpatches
 import csv
 
 
@@ -159,6 +160,8 @@ class KnnLearner(object):
                 else:
                     votes[neighbour.classification] = 1
             predicted_y[i] = max(votes, key=votes.get)
+            if i % 100 == 0:
+                print 'trial', i
         return predicted_y
 
     def predict(self, X):
@@ -194,18 +197,56 @@ class KnnLearner(object):
                 print 'predicted = {0}, actual = {1}'.format(predicted_y[i], actual_y[i])
         return float(sum(predicted_y == actual_y)) / predicted_y.shape[0]
 
+def plot_data(train_x, train_y):
+
+    plt.figure(2, figsize=(8, 6))
+    plt.clf()
+    # Plot the training points    
+    plt.scatter(train_x[:, 0], train_x[:, 1], c=train_y, cmap=plt.cm.Paired)
+    plt.xlabel('vector distance to "music"')
+    plt.ylabel('vector distance to "movie"')
+    plt.title('Classification of Movie and Music Interviews')
+
+    red_category = mpatches.Patch(color='red', label='Movie Interviews')
+    blue_category = mpatches.Patch(color='blue', label='Music Interviews')
+    plt.legend(handles=[red_category, blue_category])
+
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+    plt.xticks(())
+    plt.yticks(())
+    plt.savefig('music_vs_movie.pdf')
+    plt.show()
+
+
+def cross_validate(X, y, fold, num_neighbours):
+    split = int(0.2 * X.shape[0])
+    train_x = X[:, :]
+    train_y = y[:]
+    np.delete(train_x, range(fold * split, (fold + 1) * split), 0)
+    np.delete(train_y, range(fold * split, (fold + 1) * split), 0)
+    test_x = X[fold * split:(fold + 1) * split, :]
+    test_y = y[fold * split:(fold + 1) * split:]
+
+    print 'Building ball tree...'
+    tree = BallTreeNode.construct_balltree(train_x, train_y)
+    learner = KnnLearner(train_x, train_y, num_neighbours)
+    print 'finished constructing ball tree'
+
+    tree_predicted_y = learner.predict_with_tree(test_x, tree)
+    accuracy = learner.get_accuracy(tree_predicted_y, test_y)
+    print 'Fold {} Accuracy: {:.6%}'.format(fold + 1, accuracy)
+    return accuracy
+
 
 if __name__=='__main__':
    
-    # iris = datasets.load_iris()
-    # X = iris.data[:, :2] # we only take the first two features.
-    # y = iris.target
-    # y[y == 2] = 1 # get rid of 3rd classifaction type
-
+    print 'opening feature file...'
     with open('train_features.csv', 'r') as csvfile:
         data = list(csv.reader(csvfile))
         data = np.array(data)
         data = data.astype(np.float32)
+
 
     (n, m) = data.shape
     X = data[:, :m-1]
@@ -216,57 +257,17 @@ if __name__=='__main__':
     x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
     y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
 
-    split = int(0.75 * X.shape[0])
-    num_neighbours = 10
-    train_x = X[0:split, :]
-    train_y = y[0:split]
-    test_x = X[split:, :]
-    test_y = y[split:]
+    results = []
+    for i in range(5):
+        results.append(cross_validate(X, y, i, 12))
 
-    tree = BallTreeNode.construct_balltree(train_x, train_y)
+    print 'Average accuracy accross 5 folds: {}'.format(sum(results)/5)
 
-    learner = KnnLearner(train_x, train_y, num_neighbours)
-    target = test_x[0, :]
-    neighbours = learner.get_neighbours(target, num_neighbours)
-    print '\nbrute force\n------------'
-    for i in neighbours:
-        print '{}, {}'.format(train_x[i], train_y[i])
-
-    heap = []
-    tree.knn_search(target, num_neighbours, heap)
-    print '\nball tree\n------------'
-    for x in heap:
-        print '{}, {}'.format(x.value, x.classification)
-
-    print '\ntarget'
-    print target
+    
 
 
 
-    tree_predicted_y = learner.predict_with_tree(test_x, tree)
-    predicted_y = learner.predict(test_x)
-    print 'Accuracy of knn learner is {:.2%}'.format(learner.get_accuracy(predicted_y, test_y))
-    print 'Accuracy of optimized knn learner is {:.2%}'.format(learner.get_accuracy(tree_predicted_y, test_y))
-
-
-    plt.figure(2, figsize=(8, 6))
-    plt.clf()
-
-    results = ['black'] * test_x.shape[0]
-    for i in range(len(results)):
-        if predicted_y[i] == test_y[i]:
-            results[i] = 'green'
-    # Plot the training points    
-    plt.scatter(train_x[:, 0], train_x[:, 1], c=train_y, cmap=plt.cm.Paired)
-    # plt.scatter(test_x[:, 0], test_x[:, 1], c=results)
-    plt.xlabel('music')
-    plt.ylabel('movie')
-
-    plt.xlim(x_min, x_max)
-    plt.ylim(y_min, y_max)
-    plt.xticks(())
-    plt.yticks(())
-    plt.show()
+   
 
     
 
